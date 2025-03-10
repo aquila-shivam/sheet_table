@@ -35,12 +35,12 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: "RevoeAI",
       logo: GalleryVerticalEnd,
       plan: "Enterprise",
     },
     {
-      name: "Acme Corp.",
+      name: "RevoeAI Corp.",
       logo: AudioWaveform,
       plan: "Startup",
     },

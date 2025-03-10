@@ -28,20 +28,35 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-
-
+import { toast } from "sonner"
+import API from "@/utils/axios";
 import {
     Dialog,
     DialogTrigger,
 } from "@/components/ui/dialog"
 
 import { db, doc, onSnapshot } from "@/utils/firebase";
+import { useAuth } from "@/utils/useAuth";
 
+interface Table {
+    _id: string;
+    name: string;
+    columns: Array<{ name: string; dataType: string }>;
+    rows: Array<any>;
+    createdAt: string;
+  }
 
 export default function Page() {
 
     const [columns, setColumns] = useState([]);
     const [rows, setRows] = useState([]);
+
+ const [tables, setTables] = useState<Table[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        
+    }, []);
 
     useEffect(() => {
         const docRef = doc(db, "sheets", "data");
@@ -56,6 +71,12 @@ export default function Page() {
 
         return () => unsubscribe();
     }, []);
+
+    const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated === null) {
+    return <p>Loading...</p>; // Show loading while checking auth
+  }
 
     return (
         <SidebarProvider>
@@ -73,12 +94,8 @@ export default function Page() {
                             <BreadcrumbList>
                                 <BreadcrumbItem className="hidden md:block">
                                     <BreadcrumbLink href="#">
-                                        Building Your Application
+                                        Dashboard
                                     </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator className="hidden md:block" />
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage>Data Fetching</BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
@@ -116,10 +133,12 @@ export default function Page() {
                                 ))}
                             </TableBody>
                         </Table>
-                        <Button onClick={() => window.open("https://docs.google.com/spreadsheets/d/1HiMr_wyFFUi1Us0KNlI-XK51wjwSHQ3lagEzLgvHLak/edit?gid=0#gid=0", "_blank")}>
+                        <div className="flex justify-center gap-4 mt-4">
+                        <Button 
+                        onClick={() => window.open("https://docs.google.com/spreadsheets/d/1HiMr_wyFFUi1Us0KNlI-XK51wjwSHQ3lagEzLgvHLak/edit?gid=0#gid=0", "_blank")}>
                             Open Sheet
                         </Button>
-
+                        </div>
                     </div>
                 </div>
             </SidebarInset>
