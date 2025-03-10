@@ -40,6 +40,14 @@ interface Column {
   name: string;
   type: "text" | "date";
 }
+interface TableRowData {
+  value: unknown; // Using `unknown` instead of `any` for better type safety
+  columnId: number;
+}
+interface TableRow {
+  data: TableRowData[];
+  createdAt: string;
+}
 
 interface TableData {
   _id: string;
@@ -76,6 +84,7 @@ export default function Page() {
         setIsLoading(false);
       } catch (error) {
         toast.error("Failed to load table data");
+        console.error("Error loading table data:", error);
         setIsLoading(false);
       }
     };
@@ -97,6 +106,7 @@ export default function Page() {
         data: updatedRows[rowIndex]
       });
     } catch (error) {
+      console.error("Error loading table data:", error);
       toast.error("Failed to update cell");
     }
   };
@@ -116,8 +126,9 @@ export default function Page() {
 
       const updatedTable = response.data;
       setTableData(updatedTable);
-      setRows(updatedTable.rows.map((row: any) => row.data));
+      setRows(updatedTable.rows.map((row: TableRow) => row.data));
     } catch (error) {
+      console.error("Error loading table data:", error);
       toast.error("Failed to add row");
     }
   };
@@ -140,6 +151,7 @@ export default function Page() {
       setNewColumnName("");
       setIsColumnDialogOpen(false);
     } catch (error) {
+      console.error("Error loading table data:", error);
       toast.error("Failed to add column");
     }
   };

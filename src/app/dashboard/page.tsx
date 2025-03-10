@@ -8,8 +8,6 @@ import {
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -28,8 +26,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { toast } from "sonner"
-import API from "@/utils/axios";
+
 import {
     Dialog,
     DialogTrigger,
@@ -38,21 +35,37 @@ import {
 import { db, doc, onSnapshot } from "@/utils/firebase";
 import { useAuth } from "@/utils/useAuth";
 
+
+interface TableColumn {
+  name: string;
+  dataType: string;
+  order: number;
+}
+
+interface TableRowData {
+  value: unknown; // Using `unknown` instead of `any` for better type safety
+  columnId: number;
+}
+
+interface TableRow {
+  data: TableRowData[];
+  createdAt: string;
+}
+
 interface Table {
-    _id: string;
-    name: string;
-    columns: Array<{ name: string; dataType: string }>;
-    rows: Array<any>;
-    createdAt: string;
-  }
+  _id: string;
+  user: string; // Reference to User model
+  columns: TableColumn[];
+  rows: TableRow[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function Page() {
 
     const [columns, setColumns] = useState([]);
     const [rows, setRows] = useState([]);
 
- const [tables, setTables] = useState<Table[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         

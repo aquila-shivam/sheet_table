@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import API from "@/utils/axios";
+import { AxiosError } from "axios";
 
 export function LoginForm({
   className,
@@ -33,8 +34,14 @@ export function LoginForm({
       const res = await API.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Login failed");
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || "Login failed");
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
   };
 
