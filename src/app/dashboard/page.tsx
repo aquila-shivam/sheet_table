@@ -34,6 +34,8 @@ import {
 
 import { db, doc, onSnapshot } from "@/utils/firebase";
 import { useAuth } from "@/utils/useAuth";
+import axios from "axios";
+import API from "@/utils/axios";
 
 
 interface TableColumn {
@@ -62,14 +64,26 @@ interface Table {
 }
 
 export default function Page() {
-
     const [columns, setColumns] = useState([]);
     const [rows, setRows] = useState([]);
+    const [tables, setTables] = useState<Table[]>([]);
 
-
-    useEffect(() => {
-        
-    }, []);
+    const fetchTables = async () => {
+        try {
+            const response = await API.get('api/tables', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setTables(response.data); 
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error('Error fetching tables:', error.response?.data || error.message);
+            } else {
+                console.error('Error fetching tables:', error);
+            }
+        }
+    };
 
     useEffect(() => {
         const docRef = doc(db, "sheets", "data");
@@ -87,9 +101,16 @@ export default function Page() {
 
     const { isAuthenticated } = useAuth();
 
-  if (isAuthenticated === null) {
-    return <p>Loading...</p>; // Show loading while checking auth
-  }
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchTables();
+            console.log(tables);
+        }
+    }, [isAuthenticated]);
+
+    if (isAuthenticated === null) {
+        return <p>Loading...</p>; // Show loading while checking auth
+    }
 
     return (
         <SidebarProvider>
@@ -126,8 +147,46 @@ export default function Page() {
                         <div className="bg-muted/50 aspect-video rounded-xl" />
                         <div className="bg-muted/50 aspect-video rounded-xl" />
                     </div>
-                    <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min p-4">
+                    <div className="bg-muted/50 flex-1 rounded-xl p-4">
                         <Table>
+                            <TableCaption>Your Tables</TableCaption>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Table ID</TableHead>
+                                    <TableHead>Columns</TableHead>
+                                    <TableHead>Rows</TableHead>
+                                    <TableHead>Created At</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {tables.map((table) => (
+                                    <TableRow key={table._id}>
+                                        <TableCell>{table._id}</TableCell>
+                                        <TableCell>{table.columns.length}</TableCell>
+                                        <TableCell>{table.rows.length}</TableCell>
+                                        <TableCell>
+                                            {new Date(table.createdAt).toLocaleDateString()}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setColumns(table.columns.map(col => col.name));
+                                                    setRows(table.rows);
+                                                }}
+                                            >
+                                                View
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min p-4">
+                    <Table>
                             <TableCaption>Live Google Sheets Data</TableCaption>
                             <TableHeader>
                                 <TableRow>
@@ -146,12 +205,6 @@ export default function Page() {
                                 ))}
                             </TableBody>
                         </Table>
-                        <div className="flex justify-center gap-4 mt-4">
-                        <Button 
-                        onClick={() => window.open("https://docs.google.com/spreadsheets/d/1HiMr_wyFFUi1Us0KNlI-XK51wjwSHQ3lagEzLgvHLak/edit?gid=0#gid=0", "_blank")}>
-                            Open Sheet
-                        </Button>
-                        </div>
                     </div>
                 </div>
             </SidebarInset>
